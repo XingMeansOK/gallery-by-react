@@ -1,3 +1,34 @@
-body {
-  background-color: lightgrey;
+html,body {
+  background-color: #222;
+  height: 100%;
+  width:100%;
 }
+.root{
+  height: 100%;
+  width:100%;
+}
+/*stage style start*/
+.stage{
+  width:100%;
+  height:680px;
+  position:relative;
+}
+/* stage style end */
+/* img style start*/
+.img-sec{
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #ddd;
+}
+/* img style start*/
+/* controller style start*/
+.controller-nav{
+  position: absolute;
+  left: 0px;
+  bottom:30px;
+  z-index: 101;
+  text-align: center;
+  width: 100%;
+}
+/* controller style end*/

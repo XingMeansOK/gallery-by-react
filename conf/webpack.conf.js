@@ -37,6 +37,10 @@ module.exports = {
           'react-hot-loader',
           'babel-loader'
         ]
+      },
+      {
+        test:/\.(png|jpg)$/,
+        loader:'url-loader',
       }
     ]
   },
