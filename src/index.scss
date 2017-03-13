@@ -2,15 +2,17 @@ html,body {
   background-color: #222;
   height: 100%;
   width:100%;
+  margin: 0px;
+  padding:0px;
 }
-.root{
+div#root{
   height: 100%;
   width:100%;
 }
 /*stage style start*/
 .stage{
   width:100%;
-  height:680px;
+  height:100%;
   position:relative;
 }
 /* stage style end */
@@ -19,7 +21,26 @@ html,body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #ddd;
+  background-color: #ddd; /*浅灰色*/
+  @at-root {/*sass3.3.0中新增的功能，用来跳出选择器嵌套的。默认所有的嵌套，继承所有上级选择器，但有了这个就可以跳出所有上级选择器。 */
+    .img-figure{
+      position: absolute;
+      height:386px;
+      width: 218px;
+      padding: 20px 20px 50px;
+      margin: 0px;
+      box-sizing: border-box;/*所有的border，padding，margin都将在设定的height和width内*/
+      background-color: #fff;
+    }
+    figcaption{
+      text-align: center;
+      .img-title{
+        margin: 10px 0 0 0;
+        font-size: 16px;
+        color: #a7a0a1; /*浅灰色*/
+      }
+    }
+  }
 }
 /* img style start*/
 /* controller style start*/
