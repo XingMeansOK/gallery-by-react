@@ -15,7 +15,8 @@ export class Hello extends Component {
         pos: {
           left: 0,
           top: 0
-        }
+        },
+        rotate: 0
       };
     }
     // React在ES6的实现中去掉了getInitialState这个hook函数，规定state在constructor中实现
@@ -65,13 +66,15 @@ export class Hello extends Component {
     const imgsStateArr = this.state.imgsStateArr;
 
     /* 图片布局的整体思路：
-      imgsStateArr相当于一个座位排列名单，每个元素代表了一个座位，而每张图片都有自己的索引，每个图片根据自己的索引
+      imgsStateArr相当于一个座位排列名单(包含座位的位置，旋转等信息)，每个元素代表了一个座位，
+      而每张图片都有自己的索引，每个图片根据自己的索引
       在imgsStateArr中找到自己的座位信息。
       下面的一大段代码，就是产生新的座位排列的过程
     */
     // 产生新的中心座位，并将中心座位的信息暂时拿出来（方便设置剩下的座位）
     const centerImgStateArr = imgsStateArr.splice(centerIndex, 1); // 获取新的中心座位
     centerImgStateArr[0].pos = this.Constant.centerPos;// 将这个座位的位置放到到中心
+    centerImgStateArr[0].rotate = 0;// 中心的图片座位不需要旋转
     // 此时imgsStateArr中已经不包含中心座位
     // 上侧区域座位的个数
     const topImgNum = Math.floor(Math.random() * 2);// random返回一个0-1随机数,floor向下取整之后得到0或者1
@@ -80,23 +83,32 @@ export class Hello extends Component {
 
     // 设置上部座位的位置
     topImgsStateArr.forEach((value, index) => {
-      topImgsStateArr[index].pos = {
-        top: this.getRandomInRange(cTMin, cTMax),
-        left: this.getRandomInRange(cLMin, cLMax)
+      topImgsStateArr[index] = {
+        pos: {
+          top: this.getRandomInRange(cTMin, cTMax),
+          left: this.getRandomInRange(cLMin, cLMax)
+        },
+        rotate: this.getRandomDegIn30()
       };
     });
 
     // 布局两侧座位的位置
     for (let i = 0, j = imgsStateArr.length, k = j / 2; i < j; i++) {
       if (i < k) {
-        imgsStateArr[i].pos = {
-          top: this.getRandomInRange(lTMin, lTMax),
-          left: this.getRandomInRange(lLMin, lLMax)
+        imgsStateArr[i] = {
+          pos: {
+            top: this.getRandomInRange(lTMin, lTMax),
+            left: this.getRandomInRange(lLMin, lLMax)
+          },
+          rotate: this.getRandomDegIn30()
         };
       } else {
-        imgsStateArr[i].pos = {
-          top: this.getRandomInRange(rTMin, rTMax),
-          left: this.getRandomInRange(rLMin, rLMax)
+        imgsStateArr[i] = {
+          pos: {
+            top: this.getRandomInRange(rTMin, rTMax),
+            left: this.getRandomInRange(rLMin, rLMax)
+          },
+          rotate: this.getRandomDegIn30()
         };
       }
     }
@@ -115,6 +127,12 @@ export class Hello extends Component {
   */
   getRandomInRange(min, max) {
     return Math.ceil((Math.random() * (max - min)) + min);
+  }
+  /*
+  * 获取一个-30~30度以内的随机旋转角度
+  */
+  getRandomDegIn30() {
+    return (Math.random() > 0.5 ? '' : '-') + (Math.random() * 30);
   }
   componentDidMount() {
     // 组件加载之后，为每个图片计算安排座位
@@ -182,23 +200,27 @@ export class Hello extends Component {
        （需要看看原理，可能和虚拟DOM有关）
 
        推荐使用React.cloneElement 但是没弄出来。。。。。回头再说吧，弄了一天好烦
-       或者通过ref修改？这种方法还没有尝试
+       或者通过ref修改？这种方法可行的。一开始以为直接操作了dom会影响性能？
+       后来一想，就算改的是虚拟dom，无论如何最后还是要修改真实的dom节点。
     */
     if (imgFigures.length > 0) { // 说明已经挂载过了
       // 通过ref来修改style
       imgFigures.forEach((value, index) => {
         refArr.imgFigure[index].style.left = stateInfo[index].pos.left + 'px';
         refArr.imgFigure[index].style.top = stateInfo[index].pos.top + 'px';
+        (['-moz-', '-ms-', '-webkit', '']).forEach(value => {
+          refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
+        });
+
         // ??????还有一个问题就是，这里修改了已经挂载的组件的样式，但是下面又return了一个（而且要求必须return）
         // 还是要看看运行机理在回来回答一下
       });
-    } else { // 第一次挂载
-      imageDataWithUrl.forEach((value, index) => {// 创建图片节点，添加到集合中
+    } else { // 第一次挂载，但是没有布局图片
+      imageDataWithUrl.forEach(value => {// 创建图片节点，添加到集合中
         imgFigures.push(<ImgFigure
           data={value}
           key={value.index}
           refRoom={refArr}
-          state={stateInfo[index]}
           />);
           /* 组件的ref将添加到refRoom中
           不直接在这里给ref赋值的原因：在这里直接赋值，得到的是imgFigure节点，而不是真实的figure节点。
@@ -206,6 +228,9 @@ export class Hello extends Component {
           由该对象为ref添上值 */
       });
     } // else end
+    /* 当 state 发生改变时，React 提供的 render 方法并不会直接把你定义的 HTML 结构重新写进 DOM 中，
+    而是在内部的 Virtual DOM 中进行 diff，再计算出需要更新的 DOM，
+    最后再把这部分需要更新的 DOM 写入真正的 DOM 中。 */
     return (
       <section
         className="stage"

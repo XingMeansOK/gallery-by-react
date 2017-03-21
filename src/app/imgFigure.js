@@ -4,18 +4,15 @@ export class ImgFigure extends Component { // 单张图片节点类,类名首字
   static get propTypes() {
     return {
       data: React.PropTypes.object, // 验证参数：要求传进来的data是个对象。详细搜索props验证
-      refRoom: React.PropTypes.object,
-      state: React.PropTypes.object
+      refRoom: React.PropTypes.object
     };
   }
   render() {
     const refRoom = this.props.refRoom;
     const index = this.props.data.index;
-    const stateObj = this.props.state;
     return (// className双引号
       <figure
         className="img-figure"
-        style={stateObj}
         ref={
           function (_ref) {
             refRoom.imgFigure[index] = _ref;
