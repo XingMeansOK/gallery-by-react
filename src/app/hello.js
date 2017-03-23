@@ -12,11 +12,13 @@ export class Hello extends Component {
     const initState = [];
     for (let i = 0; i < imageDataWithUrl.length; i++) {
       initState[i] = {
-        pos: {
+        pos: { // 座位的位置
           left: 0,
           top: 0
         },
-        rotate: 0
+        rotate: 0, // 旋转角度
+        isInverse: false, // 正反面
+        isCenter: false // 是否是中央的那个图片
       };
     }
     // React在ES6的实现中去掉了getInitialState这个hook函数，规定state在constructor中实现
@@ -75,6 +77,7 @@ export class Hello extends Component {
     const centerImgStateArr = imgsStateArr.splice(centerIndex, 1); // 获取新的中心座位
     centerImgStateArr[0].pos = this.Constant.centerPos;// 将这个座位的位置放到到中心
     centerImgStateArr[0].rotate = 0;// 中心的图片座位不需要旋转
+    centerImgStateArr[0].isCenter = true;// 是否在中心的属性设置为是
     // 此时imgsStateArr中已经不包含中心座位
     // 上侧区域座位的个数
     const topImgNum = Math.floor(Math.random() * 2);// random返回一个0-1随机数,floor向下取整之后得到0或者1
@@ -88,7 +91,9 @@ export class Hello extends Component {
           top: this.getRandomInRange(cTMin, cTMax),
           left: this.getRandomInRange(cLMin, cLMax)
         },
-        rotate: this.getRandomDegIn30()
+        rotate: this.getRandomDegIn30(),
+        isCenter: false,
+        isInverse: false
       };
     });
 
@@ -100,7 +105,9 @@ export class Hello extends Component {
             top: this.getRandomInRange(lTMin, lTMax),
             left: this.getRandomInRange(lLMin, lLMax)
           },
-          rotate: this.getRandomDegIn30()
+          rotate: this.getRandomDegIn30(),
+          isCenter: false,
+          isInverse: false
         };
       } else {
         imgsStateArr[i] = {
@@ -108,7 +115,9 @@ export class Hello extends Component {
             top: this.getRandomInRange(rTMin, rTMax),
             left: this.getRandomInRange(rLMin, rLMax)
           },
-          rotate: this.getRandomDegIn30()
+          rotate: this.getRandomDegIn30(),
+          isCenter: false,
+          isInverse: false
         };
       }
     }
@@ -175,6 +184,22 @@ export class Hello extends Component {
       this.arrangePicInRandom(0);
     }
   }
+  /*
+  * 将返回一个闭包函数
+  * @param index 返回一个闭包函数，每个imgFigure都将有一个这个闭包函数
+  * 闭包函数内的index索引与其所有者imgFigure的index是对应的
+  * 同时这个闭包函数还持有指向当前对象实例的this
+  */
+  inverse(index) {
+    const fun = () => {
+      const imgsStateArr = this.state.imgsStateArr; // es6箭头函数的特性，this将绑定到当前这个对象实例
+      imgsStateArr[index].isInverse = !imgsStateArr[index].isInverse; // 修改该函数所有者ImgFigure的座位信息信息
+      this.setState({
+        imgsStateArr
+      });
+    };
+    return fun;
+  }
   render() {
     const refArr = this.refArr;// ref的回调函数中不能直接用this（估计this在回调函数中的指向有问题）
     const controllerUnits = [];// 导航条控制节点的集合
@@ -209,18 +234,25 @@ export class Hello extends Component {
         refArr.imgFigure[index].style.left = stateInfo[index].pos.left + 'px';
         refArr.imgFigure[index].style.top = stateInfo[index].pos.top + 'px';
         (['-moz-', '-ms-', '-webkit', '']).forEach(value => {
+          // 旋转一定角度
           refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
         });
-
+        // 如果座位信息的isInverse为true，则为imgfigure添加一个类名，否则移除is-inverse
+        if (stateInfo[index].isInverse) {
+          refArr.imgFigure[index].classList.add('is-inverse');
+        } else {
+          refArr.imgFigure[index].classList.remove('is-inverse');
+        }
         // ??????还有一个问题就是，这里修改了已经挂载的组件的样式，但是下面又return了一个（而且要求必须return）
         // 还是要看看运行机理在回来回答一下
       });
     } else { // 第一次挂载，但是没有布局图片
-      imageDataWithUrl.forEach(value => {// 创建图片节点，添加到集合中
+      imageDataWithUrl.forEach((value, index) => {// 创建图片节点，添加到集合中
         imgFigures.push(<ImgFigure
           data={value}
           key={value.index}
           refRoom={refArr}
+          inverse={this.inverse(index)}
           />);
           /* 组件的ref将添加到refRoom中
           不直接在这里给ref赋值的原因：在这里直接赋值，得到的是imgFigure节点，而不是真实的figure节点。

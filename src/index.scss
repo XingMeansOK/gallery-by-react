@@ -25,13 +25,29 @@ div#root{
   background-color: #ddd; /*浅灰色*/
   @at-root {/*sass3.3.0中新增的功能，用来跳出选择器嵌套的。默认所有的嵌套，继承所有上级选择器，但有了这个就可以跳出所有上级选择器。 */
     .img-figure{
+      // position: absolute;
+      // height:386px;
+      // width: 218px;
+      // padding: 20px 20px 50px;
+      // margin: 0px;
+      // box-sizing: border-box;/*所有的border，padding，margin都将在设定的height和width内*/
+      // background-color: #fff;
+      // transform-style: preserve-3d;
+      // transform-origin: 0 50% 0;
       position: absolute;
       height:386px;
       width: 218px;
+      margin: 0;
       padding: 20px 20px 50px;
-      margin: 0px;
-      box-sizing: border-box;/*所有的border，padding，margin都将在设定的height和width内*/
+      box-sizing: border-box;
       background-color: #fff;
+      cursor: pointer;
+      transform-origin: 0 50% 0;
+      transform-style: preserve-3d;
+      transition: transform .6s ease-in-out,left .6s ease-in-out,top .6s ease-in-out;
+      &.is-inverse{
+        transform: translate(320px) rotateY(180deg);
+      }
     }
     figcaption{
       text-align: center;
@@ -39,6 +55,15 @@ div#root{
         margin: 10px 0 0 0;
         font-size: 16px;
         color: #a7a0a1; /*浅灰色*/
+      }
+      .img-back{
+        position: absolute;
+        height:386px;
+        width: 218px;
+        top: 0px;
+        left: 0px;
+        z-index: -1;
+        transform:rotateY(-180deg) translateZ(1px);
       }
     }
   }
