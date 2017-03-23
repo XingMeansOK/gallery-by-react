@@ -234,8 +234,13 @@ export class Hello extends Component {
         refArr.imgFigure[index].style.left = stateInfo[index].pos.left + 'px';
         refArr.imgFigure[index].style.top = stateInfo[index].pos.top + 'px';
         (['-moz-', '-ms-', '-webkit', '']).forEach(value => {
-          // 旋转一定角度
-          refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
+          // 不在中心的图片旋转一定角度，并且让中心图片不收遮挡
+          if (stateInfo[index].isCenter === true) {
+            refArr.imgFigure[index].style['z-index'] = '101';
+          } else {
+            refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
+            refArr.imgFigure[index].style['z-index'] = '100';
+          }
         });
         // 如果座位信息的isInverse为true，则为imgfigure添加一个类名，否则移除is-inverse
         if (stateInfo[index].isInverse) {
