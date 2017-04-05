@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
 import {ImgFigure} from './imgFigure.js';// 除了export default，其他import的时候必须加上大括号
-import imageDataWithUrl from './imageDataWithUrl.js';
+import {ControllerUnit} from './ControllerUnit.js';
+import imageDataWithUrl from './imageDataWithUrl.js';// 这个就是export default
 
 export class Hello extends Component {
   constructor() {
     super();
     this.refArr = {};// 存放所有的ref
     this.imgFigures = [];// 所有imgFigure的集合
+    this.controllerUnits = [];// 导航条控制节点的集合
     this.refArr.imgFigure = [];// imgFigure(转换成实例是figure)的ref集合
     // 初始化各个图片的座位
     const initState = [];
@@ -185,25 +187,31 @@ export class Hello extends Component {
     }
   }
   /*
-  * 将返回一个闭包函数
+  * 将返回一个闭包函数,处理imgFigure的点击事件
   * @param index 返回一个闭包函数，每个imgFigure都将有一个这个闭包函数
   * 闭包函数内的index索引与其所有者imgFigure的index是对应的
   * 同时这个闭包函数还持有指向当前对象实例的this
+  * @return {Function}
   */
-  inverse(index) {
-    const fun = () => {
-      const imgsStateArr = this.state.imgsStateArr; // es6箭头函数的特性，this将绑定到当前这个对象实例
-      imgsStateArr[index].isInverse = !imgsStateArr[index].isInverse; // 修改该函数所有者ImgFigure的座位信息信息
-      this.setState({
-        imgsStateArr
-      });
+  getImgFigureHandleFun(index) {
+    const fun = () => {// 修改该函数所有者ImgFigure的座位信息信息
+      const imgsStateArr = this.state.imgsStateArr;
+      if (imgsStateArr[index].isCenter) { // 如果在该imgFigure在中心则翻转
+        imgsStateArr[index].isInverse = !imgsStateArr[index].isInverse;
+        this.setState({// es6箭头函数的特性，this将绑定到当前这个对象实例
+          imgsStateArr
+        });
+      } else { // 不在中心，重新布局图片，将点击的图片放到中心
+        this.arrangePicInRandom(index);
+      }
     };
     return fun;
   }
+
   render() {
     const refArr = this.refArr;// ref的回调函数中不能直接用this（估计this在回调函数中的指向有问题）
-    const controllerUnits = [];// 导航条控制节点的集合
     const imgFigures = this.imgFigures;// 图片节点的集合
+    const controllerUnits = this.controllerUnits;
     const stateInfo = this.state.imgsStateArr;
     // imgFigures[index]的属性state因为是引用imgsStateArr[index]的值，所以当imgsStateArr[index]修改的时候，
     // imgFigures[index]的属性state也会跟着动态修改！！
@@ -234,14 +242,15 @@ export class Hello extends Component {
         refArr.imgFigure[index].style.left = stateInfo[index].pos.left + 'px';
         refArr.imgFigure[index].style.top = stateInfo[index].pos.top + 'px';
         (['-moz-', '-ms-', '-webkit', '']).forEach(value => {
-          // 不在中心的图片旋转一定角度，并且让中心图片不收遮挡
-          if (stateInfo[index].isCenter === true) {
-            refArr.imgFigure[index].style['z-index'] = '101';
-          } else {
-            refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
-            refArr.imgFigure[index].style['z-index'] = '100';
-          }
+          // 这句将添加上行内样式（优先级高），会导致css类is-inverse中的transform失效
+          refArr.imgFigure[index].style[value + 'transform'] = 'rotate(' + stateInfo[index].rotate + 'deg)';
         });
+        // 让中心图片不受遮挡
+        if (stateInfo[index].isCenter === true) {
+          refArr.imgFigure[index].style['z-index'] = '101';
+        } else {
+          refArr.imgFigure[index].style['z-index'] = '100';
+        }
         // 如果座位信息的isInverse为true，则为imgfigure添加一个类名，否则移除is-inverse
         if (stateInfo[index].isInverse) {
           refArr.imgFigure[index].classList.add('is-inverse');
@@ -257,12 +266,13 @@ export class Hello extends Component {
           data={value}
           key={value.index}
           refRoom={refArr}
-          inverse={this.inverse(index)}
+          clickHandler={this.getImgFigureHandleFun(index)}
           />);
           /* 组件的ref将添加到refRoom中
           不直接在这里给ref赋值的原因：在这里直接赋值，得到的是imgFigure节点，而不是真实的figure节点。
           将空的ref交给imgFigure
           由该对象为ref添上值 */
+        controllerUnits.push(<ControllerUnit key={index}/>);
       });
     } // else end
     /* 当 state 发生改变时，React 提供的 render 方法并不会直接把你定义的 HTML 结构重新写进 DOM 中，
@@ -275,7 +285,7 @@ export class Hello extends Component {
           refArr.stage = stage;
         /*  es6中react添加ref采用回调函数的方式(官方文档中用this都没问题，但是这里不行，不知道为什么)
           执行该回调函数的时机是组件挂载完成后者组件卸载之后，这时该函数的调用者不是该实例对象，
-          但是该回调函数的可以读到其包含环境的变量 */
+          但是该回调函数的可以读到其包含环境的变量(闭包) */
         }}
         >
         <section className="img-sec">

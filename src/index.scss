@@ -1,3 +1,6 @@
+/* 导入font-awesome字体 */
+@import "./fonts/font-awesome-4.7.0/css/font-awesome.min.css";
+
 html,body {
   background-color: #222;
   height: 100%;
@@ -34,12 +37,12 @@ div#root{
       box-sizing: border-box;/*所有的border，padding，margin都将在设定的height和width内*/
       background-color: #fff;
       cursor: pointer;
-      transform-origin: 0 50% 0;
+      transform-origin: 0 50% 0; // 分别表示x,y,z轴的原点位置 ，因为是绕y旋转，所以50%其实没用
       transform-style: preserve-3d;
       transition: transform .6s ease-in-out,left .6s ease-in-out,top .6s ease-in-out;
-      &.is-inverse{// translate()中的参数要与图片宽度保持一致，保证翻转前后位置不变
-        transform: translate(218px) rotateY(180deg);
-      }
+      &.is-inverse{// translate()中的参数要与图片宽度保持一致，保证翻转前后位置不变；!important防止添加的行内样式使这句失效
+        transform: translate(218px) rotateY(180deg)!important;
+      }// translate(218px) 沿着x正向移动，不然就会像开门一样
       img{
         backface-visibility:hidden;
       }
@@ -72,5 +75,26 @@ div#root{
   z-index: 101;
   text-align: center;
   width: 100%;
+  @at-root {
+    .controller-unit {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      margin: 0 5px;
+      background-color: #aaa;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 50%; /* 变成圆形 */
+      transform: scale(0.5); /* 不是对应中心图片的按钮是小的 */
+      &.is-center {
+        transform: scale(1);
+        background-color: #888; /* 中心图片的按钮颜色深一些 */
+        &::after{
+          content: "\f079"; /* 如果在css中直接使用font-awesome,import他的css文件后，加上这两行 */
+          font-family: FontAwesome;
+        }
+      }
+    }
+  }
 }
 /* controller style end*/
